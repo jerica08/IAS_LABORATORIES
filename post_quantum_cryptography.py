@@ -1,32 +1,81 @@
-import pqcrypto
-from pqcrypto.kem import ml_kem_512
+from liboqs import KeyEncapsulation, KeySignature
 
-def run_pqc_test():
-    print("--- Starting Post-Quantum Test ---")
+import secrets
 
-    # 1. Key Generation   
-    pk, sk = ml_kem_512.generate_keypair()
-    
-    print(f"Public Key type: {type(pk)} | Length: {len(pk)}")
-    print(f"Private Key type: {type(sk)} | Length: {len(sk)}")
 
-    # 2. Encapsulation (Encryption) 
-    ct, ss_enc = ml_kem_512.encrypt(pk)
-    print(f"Ciphertext generated. Length: {len(ct)}")
 
-    # 3. Decapsulation (Decryption)
-    try:
-        ss_dec = ml_kem_512.decrypt(ct, sk)
-        print("Decryption successful!")
-        
-        if ss_enc == ss_dec:
-            print("RESULT: Shared secrets match! 100% Secure.")
-        else:
-            print("RESULT: Mismatch detected.")
-            
-    except ValueError as e:
-        print(f"Library Error: {e}")
-        print("Debugging: Check if 'sk' was modified between steps.")
+# =====================================================
 
-if __name__ == "__main__":
-    run_pqc_test()
+# Generate Public & Private Keys (Kyber512)
+
+# =====================================================
+
+
+
+kem = KeyEncapsulation("Kyber512")
+
+public_key = kem.generate_keypair()
+
+private_key = kem.export_secret_key()
+
+
+
+print("Public Key Generated")
+
+print("Private Key Generated")
+
+
+
+# =====================================================
+
+# Encrypt (Encapsulate) - Generate Shared Secret
+
+# =====================================================
+
+
+
+ciphertext, shared_secret_sender = kem.encap_secret(public_key)
+
+
+
+print("\nCiphertext:", ciphertext)
+
+print("Sender Shared Secret:", shared_secret_sender)
+
+
+
+# =====================================================
+
+# Decrypt (Decapsulate)
+
+# =====================================================
+
+
+
+kem2 = KeyEncapsulation("Kyber512")
+
+kem2.secret_key = private_key
+
+shared_secret_receiver = kem2.decap_secret(ciphertext)
+
+
+
+print("\nReceiver Shared Secret:", shared_secret_receiver)
+
+
+
+# =====================================================
+
+# Verify
+
+# =====================================================
+
+
+
+if shared_secret_sender == shared_secret_receiver:
+
+    print("\n Shared secrets match!")
+
+else:
+
+    print("\n Shared secrets do NOT match!")
